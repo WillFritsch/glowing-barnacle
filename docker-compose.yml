@@ -1,0 +1,51 @@
+version: '3'
+services:
+  development:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    volumes:
+      - ..:/workspace
+    stdin_open: true
+    networks:
+      - sail
+    depends_on:
+      - pgsql
+
+  pgsql:
+    image: "postgis/postgis:17-3.5"
+    ports:
+      - "${FORWARD_DB_PORT:-5432}:5432"
+    environment:
+      PGPASSWORD: "${DB_PASSWORD:-secret}"
+      POSTGRES_DB: "${DB_DATABASE}"
+      POSTGRES_USER: "${DB_USERNAME}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD:-secret}"
+    volumes:
+      - "sail-pgsql:/var/lib/postgresql/data"
+    networks:
+      - sail
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "pg_isready",
+          "-q",
+          "-d",
+          "${DB_DATABASE}",
+          "-U",
+          "${DB_USERNAME}",
+        ]
+      retries: 3
+      timeout: 5s
+
+networks:
+  sail:
+    driver: bridge
+volumes:
+  sail-pgsql:
+    driver: local
+  sail-redis:
+    driver: local
