@@ -1,5 +1,4 @@
 <?php
 
-echo "hellow world";
-
-?>
+require 'functions.php';
+require 'router.php';
